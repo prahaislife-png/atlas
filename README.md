@@ -1,8 +1,8 @@
 # ATLAS · Evidence-first AI discovery
 
-ATLAS includes the tested Mission 1 local research workflow and a Supabase/Vercel hosted candidate. It preserves the forest-green/lime design and dependency-free Node/browser architecture. **Public deployment remains blocked until the actual Supabase services, secure bindings, target Vercel configuration and launch gate are verified.** Local fixtures and local Postgres tests do not prove remote readiness.
+ATLAS includes the tested Mission 1 local research workflow and a Supabase/Vercel hosted implementation. It preserves the forest-green/lime design and dependency-free Node/browser architecture. Actual Supabase Auth, tenant isolation and private storage have passed live checks. Deployment still requires secure production bindings in Vercel; operational readiness is tracked in [docs/SECURITY.md](docs/SECURITY.md).
 
-For hosted setup, read [docs/SUPABASE.md](docs/SUPABASE.md), [docs/VERCEL.md](docs/VERCEL.md) and [docs/SECURITY.md](docs/SECURITY.md). The separate hosted entry point is `api/index.js`; it never uses local JSON storage. `npm run vercel-build` intentionally fails pending real-service/release verification. The local entry point still rejects hosted/production startup; use `npm run dev` for local research.
+For hosted setup, read [docs/SUPABASE.md](docs/SUPABASE.md), [docs/VERCEL.md](docs/VERCEL.md) and [docs/SECURITY.md](docs/SECURITY.md). The separate hosted entry point is `api/index.js`; it never uses local JSON storage. `npm run vercel-build` validates production configuration, the actual Supabase schema/Auth/private bucket and read-only OpenAI model access. It fails closed with an actionable error; it never runs a paid search. The local entry point still rejects hosted/production startup; use `npm run dev` for local research.
 
 ## Run locally
 
@@ -57,7 +57,7 @@ npm run check          # Node syntax checks + unit and real local HTTP integrati
 npm run test:browser   # Isolated browser workflows; needs Python Playwright + Chromium
 ```
 
-The browser suite is documented in [docs/QA.md](docs/QA.md). This cloud machine has Python Playwright 1.62.0 and system Chromium. Tests use temporary storage and controlled provider responses; fixtures never enter the actual workspace. No live API success is claimed. A real OpenAI call remains unverified until an authorized key and working provider network access are supplied.
+The browser suite is documented in [docs/QA.md](docs/QA.md). This cloud machine has Python Playwright 1.62.0 and system Chromium. Tests use temporary storage and controlled provider responses; fixtures never enter customer metrics. Live Supabase checks are documented in [docs/SUPABASE.md](docs/SUPABASE.md). No completed paid OpenAI search is claimed; read-only model access does not prove search results or billing availability.
 
 Node tests cover reviewed onboarding, invalid profiles/URLs/questions, brand injection, evidence parsing, raw provenance, missing/invalid credentials, partial failures, secret sanitization, strict search eligibility, budget/run/prompt caps, concurrency, restart persistence, interrupted runs and legacy/corrupt state handling. Browser tests exercise the actual forms, empty workspace, scan states, evidence/competitor drilldowns, exports, keyboard drawers and small screens.
 
@@ -91,7 +91,7 @@ The database suite uses checksum-pinned Postgres 17 with no published port. It s
 
 ## Deployment gate and remaining work
 
-No public deployment has been performed. The real Supabase migration, actual login/tenant/storage checks, secure provider bindings, managed backup/restore settings and Vercel access/target configuration remain prerequisites. Build protection intentionally remains enabled until they pass. The provided API key must be rotated because it was pasted into chat; it was not copied into files, commands or tests.
+Vercel CLI is authenticated and linked to `govinds-projects-12315c65/atlas`. Production secrets must be entered securely in Vercel. The live schema/Auth/tenant/storage checks passed, and the build now checks actual services instead of rejecting every deployment. No public deployment from this implementation is claimed yet. Replace the keys exposed in chat; no pasted secret was copied into source or deployment settings. Managed backup/restore, target HTTPS session/routing checks and a reviewed paid observation remain outstanding operational checks.
 
 The implementation does not provide billing, public self-service account registration, a password-recovery callback, unattended scheduling, analytics attribution or website auditing. Provision verified password accounts through Supabase for the initial controlled pilot. Production account/privacy operations and the incident procedure are in `docs/SECURITY.md`. Hosted organization storage currently uses a versioned JSONB research aggregate, which should be paginated/normalized before large-history workloads. Local research still uses `.runtime/state.json`; local and hosted storage are separate workflows.
 

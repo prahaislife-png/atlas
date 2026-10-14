@@ -1,6 +1,6 @@
 # ATLAS operational security and release gate
 
-The Supabase/Vercel candidate has local tests, not a completed remote launch review. The build guard intentionally remains active. Local Postgres role/RLS tests and Auth fixtures are useful evidence; they do not establish that an actual cloud project's credentials, policies, backup settings or runtime are correct.
+The Supabase/Vercel implementation has local tests and 31 successful live Supabase Auth/tenant/private-storage checks, described in `SUPABASE.md`. This is not a completed operational launch review. The deployment build now verifies production configuration, live schema/Auth/private storage and read-only model access; missing or invalid services stop deployment. Backup settings, a managed restore drill, paid-search behavior and the actual Vercel HTTPS runtime require separate verification. Local Postgres tests and Auth fixtures alone do not prove those properties.
 
 ## Release evidence required
 
