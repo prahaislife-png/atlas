@@ -1,0 +1,14 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "npm run vercel-build",
+  "outputDirectory": "public",
+  "functions": {"api/index.js": {"maxDuration": 120}},
+  "rewrites": [{"source": "/api/:path*", "destination": "/api?atlas_path=:path*"}],
+  "headers": [{"source": "/(.*)", "headers": [
+    {"key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"},
+    {"key": "X-Content-Type-Options", "value": "nosniff"},
+    {"key": "Referrer-Policy", "value": "no-referrer"},
+    {"key": "Cache-Control", "value": "no-store"}
+  ]}]
+}

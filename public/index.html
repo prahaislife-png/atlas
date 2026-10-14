@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="color-scheme" content="light"/><title>ATLAS — The AI Discovery OS</title><meta name="description" content="Evidence-first AI discovery for modern businesses"/><link rel="stylesheet" href="/style.css"/></head><body>
+<a class="skip-link" href="#view">Skip to workspace</a>
+<div class="shell">
+<aside class="sidebar">
+ <div class="identity"><span class="logo" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="wordmark">atlas<span class="logo-dot">.</span></span><span class="edition">BETA</span></div>
+ <div class="side-workspace"><span class="avatar" id="workspaceAvatar">A</span><span><strong id="side-brand">Your new workspace</strong><small>Research workspace</small></span><span class="chev">⌄</span></div>
+ <div class="side-caption">WORKSPACE</div>
+ <nav class="nav" id="nav">
+  <button data-view="overview" class="active"><span class="nav-icon">◈</span>Command center <span class="nav-short">01</span></button>
+  <button data-view="opportunities"><span class="nav-icon">◎</span>Opportunities <span class="nav-short">02</span></button>
+  <button data-view="evidence"><span class="nav-icon">▤</span>Evidence lab <span class="nav-short">03</span></button>
+  <button data-view="actions"><span class="nav-icon">⌁</span>Action plans <span class="nav-short">04</span></button>
+ </nav>
+ <div class="side-caption">MANAGE</div>
+ <nav class="nav"><button data-view="settings"><span class="nav-icon">⚙</span>Settings</button></nav>
+ <div class="side-bottom"><div class="side-illustration"><div class="orb orb-one"></div><div class="orb orb-two"></div><span>AI SEARCH<br/>IS A NEW<br/><em>FRONT DOOR.</em></span></div><div class="side-footer"><span class="live-indicator"></span><span>Local research environment</span></div></div>
+</aside>
+<main class="main">
+  <header class="topbar"><div class="crumb">WORKSPACES <span> / </span> <strong id="crumb-brand">GET STARTED</strong> <span> / </span> <strong id="crumb-section">OVERVIEW</strong></div><div class="top-actions"><span id="modeBadge" class="mode-badge">NO OBSERVATIONS YET</span><button class="btn btn-ghost" id="exportBtn" disabled>↓ Export</button><button class="btn btn-dark" id="scanBtn" disabled><span class="scan-dot"></span> Run search scan</button></div></header>
+  <div id="view" class="view" tabindex="-1"></div>
+  <footer class="footer"><span>ATLAS / INSTRUMENTED INTELLIGENCE</span><span>Evidence-first · Local research instrument · Mission 1</span></footer>
+</main>
+</div>
+<div id="drawerBackdrop" class="backdrop hidden"></div><aside id="drawer" class="drawer hidden" role="dialog" aria-modal="true" aria-label="Research evidence panel"><button class="drawer-close" id="closeDrawer" aria-label="Close panel">×</button><div id="drawerBody"></div></aside>
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+<script src="/app.js" type="module"></script>
+</body></html>

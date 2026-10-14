@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+.vercel/
+__pycache__/
+*.pyc
+node_modules/
+.runtime/
+.DS_Store
+coverage/
+*.log
