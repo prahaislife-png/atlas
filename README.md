@@ -84,6 +84,7 @@ npm run test:browser           # Original local workflow
 npm run test:hosted-browser    # Login/org/role UX using isolated Auth fixtures
 npm run test:db                # Docker: real Postgres migration/RLS/jobs/roles/restore
 npm run verify:supabase        # Read-only real-service probe; requires secure config
+npm run apply:supabase         # Apply the checked-in SQL; requires an operator access token
 ```
 
 The database suite uses checksum-pinned Postgres 17 with no published port. It supplies test-only Auth/Storage schema interfaces, then runs the actual migration, forbidden-access checks and a real pg_dump/restore. It does not claim to test a live Supabase Auth service. Hosted HTTP/browser tests use isolated fixtures. `verify:supabase` checks remote schema version and bucket privacy; it does not replace live login and cross-tenant tests.
@@ -103,3 +104,5 @@ The implementation does not provide billing, public self-service account registr
 5. Inspect a run, its exact question outcomes, provider/model/method/location/time and raw answer/citations. Download its JSON. Failed questions must not lower the mention rate or fabricate an absent response. Check a competitor's supporting records, Escape/focus behavior and a narrow mobile layout. A live-provider failure is a failed check, not a successful measurement.
 
 See [docs/PROVIDER_ADAPTER.md](docs/PROVIDER_ADAPTER.md) for the adapter contract and measurement limits, and the supplied product/architecture/task documents for later phases.
+
+Supabase modern publishable/secret keys are supported with `SUPABASE_KEY_MODE=modern`; the existing secure fields `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` accept that pair. See `docs/SUPABASE.md` for aliases, legacy mode, exposed-key rotation and migration automation. Credential values from chat were not written into source, files or saved instructions.

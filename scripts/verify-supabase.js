@@ -1,6 +1,6 @@
 import {createSupabase,supabaseConfig} from '../src/hosted/supabase.js';
 try {
-  const client=createSupabase(supabaseConfig());
+  const client=createSupabase(supabaseConfig(process.env,{requireAppOrigin:false}));
   const versions=await client.call('/rest/v1/atlas_schema_migrations?select=version',{service:true});
   if(!versions.some(v=>v.version==='202610140001'))throw new Error('Expected schema version missing');
   const bucket=await client.call('/storage/v1/bucket/atlas-evidence',{service:true});

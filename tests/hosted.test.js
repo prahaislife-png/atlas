@@ -80,6 +80,30 @@ test('real Supabase client verifies user confirmation and sanitizes transport/pr
   await assert.rejects(denied.call('/rest/v1/atlas_workspaces'),error=>error.status===403&&!error.message.includes('fixture-secret'));
   await assert.rejects(denied.loadRaw(OA,{bucket:'atlas-evidence',key:OB+'/file.json'}),{status:403});
 });
+test('modern Supabase keys use apikey without masquerading as a user JWT, including proxy placeholders',async()=>{
+  const settings={...config,keyMode:'modern'};
+  const requests=[];
+  const client=createSupabase(settings,async(url,options)=>{requests.push(options);return new Response('{}');});
+  await client.call('/auth/v1/token?grant_type=password',{method:'POST',body:{email:'fixture@example.com',password:'fixture'}});
+  await client.rpc('atlas_rate_limit',{p_key:'fixture',p_max:1,p_window_seconds:1},{service:true});
+  await client.call('/rest/v1/atlas_workspaces',{token:'fixture-user-jwt'});
+  assert.equal(requests[0].headers.apikey,settings.anonKey);
+  assert.equal('Authorization' in requests[0].headers,false);
+  assert.equal(requests[1].headers.apikey,settings.serviceKey);
+  assert.equal('Authorization' in requests[1].headers,false);
+  assert.equal(requests[2].headers.apikey,settings.anonKey);
+  assert.equal(requests[2].headers.Authorization,'Bearer fixture-user-jwt');
+});
+test('connection probes accept modern aliases without a web origin while hosted requests still require it',()=>{
+  const env={SUPABASE_URL:'https://project-ref.supabase.co',SUPABASE_PUBLISHABLE_KEY:'fixture-public',SUPABASE_SECRET_KEY:'fixture-secret'};
+  const settings=supabaseConfig(env,{requireAppOrigin:false});
+  assert.equal(settings.keyMode,'modern');
+  assert.equal(settings.anonKey,env.SUPABASE_PUBLISHABLE_KEY);
+  assert.equal(settings.serviceKey,env.SUPABASE_SECRET_KEY);
+  assert.throws(()=>supabaseConfig(env),/ATLAS_APP_URL/);
+  assert.throws(()=>supabaseConfig({...env,SUPABASE_KEY_MODE:'invalid'},{requireAppOrigin:false}),/SUPABASE_KEY_MODE/);
+  assert.equal(supabaseConfig({...env,SUPABASE_KEY_MODE:'legacy'},{requireAppOrigin:false}).keyMode,'legacy');
+});
 test('Supabase store retries a CAS conflict against a freshly loaded state instead of losing another mutation',async()=>{
   const client=fixtures();let conflict=true;const rpc=client.rpc.bind(client);
   client.rpc=async(name,value,options)=>{if(conflict){conflict=false;client.rows.get(OA).revision++;client.rows.get(OA).state.actions.push({id:'other-request'});throw Object.assign(new Error('conflict'),{code:'DB_CONFLICT'});}return rpc(name,value,options);};

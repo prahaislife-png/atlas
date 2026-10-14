@@ -6,6 +6,8 @@ Selected project: `https://pznsarkpjaykanxlmqix.supabase.co`. HTTPS reachability
 
 Open the project's SQL Editor and apply `supabase/migrations/202610140001_tenant_foundations.sql` once. The migration is transactional and records version `202610140001`. It creates only ATLAS application tables/functions and the private `atlas-evidence` bucket/policy; it relies on Supabase's existing Auth and Storage schemas. It revokes public schema creation from untrusted roles. Review existing bucket policies before release because unrelated permissive policies can widen access.
 
+For automatic setup, securely configure an operator `SUPABASE_ACCESS_TOKEN` for `api.supabase.com`, then run `npm run apply:supabase`. Project API keys cannot execute schema changes. The command applies only the checked-in initial migration, confirms its recorded version, skips an already applied version and refuses an unknown history. It does not log upstream response bodies or credentials. This token is for operator setup only; the web runtime does not use it. Manual SQL Editor setup remains available without an account access token.
+
 For future changes, add a new versioned migration; do not rerun/edit an already applied migration. This initial migration was tested on isolated Postgres 17 with test-only implementations of Supabase's Auth/Storage schema interfaces. Real Auth, Storage and project policy behavior still need live verification.
 
 ## Secure configuration
@@ -15,13 +17,18 @@ Configure these in both the Codex cloud environment (for real-service validation
 | Name | Setting |
 | --- | --- |
 | `SUPABASE_URL` | `https://pznsarkpjaykanxlmqix.supabase.co` |
-| `SUPABASE_ANON_KEY` | Project's legacy `anon` JWT key; secure settings only |
-| `SUPABASE_SERVICE_ROLE_KEY` | Project's legacy `service_role` JWT key; server only, secure settings only |
+| `SUPABASE_ANON_KEY` | Fresh publishable key (`sb_publishable_…`); secure settings only |
+| `SUPABASE_SERVICE_ROLE_KEY` | Fresh secret key (`sb_secret_…`); server only, secure settings only |
+| `SUPABASE_KEY_MODE` | `modern` for the publishable/secret pair |
 | `ATLAS_APP_URL` | Exact final HTTPS application origin assigned by Vercel/custom domain |
 | `ATLAS_OPENAI_API_KEY` | A replacement OpenAI key entered securely; cloud supports this alias |
 | `OPENAI_MODEL` | `gpt-4.1-mini`, the model covered by the reservation policy |
 
-The Supabase keys are available under the project's API keys settings (legacy `anon` / `service_role` JWT keys). They are never returned by an ATLAS endpoint. Do not use browser/public environment-variable prefixes. New `sb_*` API key formats are not claimed verified by this implementation; use the documented JWT keys until separately tested.
+The key field names retain compatibility with the existing secure settings form: put the publishable key in `SUPABASE_ANON_KEY` and the private secret key in `SUPABASE_SERVICE_ROLE_KEY`, with `SUPABASE_KEY_MODE=modern`. Canonical `SUPABASE_PUBLISHABLE_KEY` / `SUPABASE_SECRET_KEY` names are also accepted and select modern mode by default. Never configure two different pairs at once. Legacy anon/service-role JWTs still work with explicit `SUPABASE_KEY_MODE=legacy`. Keys are never returned by an ATLAS endpoint. Do not use browser/public prefixes for the private key.
+
+Modern keys are carried in the `apikey` header. A real user's JWT is sent as Authorization for their RLS-scoped requests; a modern API key is never substituted for that user JWT. Explicit mode works with opaque proxy-injected credentials. This header contract has local tests and was checked against the official Supabase JavaScript SDK source (2.117.3); actual new-key access remains unverified until secure bindings are configured.
+
+The service-role JWT and modern secret key shared in chat/screenshots are exposed. Revoke/replace the modern secret. Disable the exposed legacy keys or follow Supabase's JWT-secret rotation procedure so the old privileged JWT is unusable; creating a new modern key alone does not revoke it. Keep replacement values in the secure settings fields.
 
 For the initial controlled pilot, provision verified password accounts through Supabase's admin dashboard. Public signup, invitation callback processing and password recovery are not provided by ATLAS. Account provisioning/reset remains an operator task using Supabase's supported tools. Never paste passwords or service credentials into chat. Do not disable email confirmation to make login pass.
 
@@ -54,7 +61,8 @@ npm run check
 npm run test:db
 npm run test:browser
 npm run test:hosted-browser
-npm run verify:supabase
+npm run apply:supabase       # Operator action; requires a secure account access token
+npm run verify:supabase      # Read-only project/schema/bucket probe
 ```
 
 The database command starts an isolated Docker container with no published port/network, applies the migration and runs RLS, forbidden writes, owner rules, immutable history, durable job, audited deletion and real dump/restore checks. Docker removes the test container afterward; no production credentials are used. Python Playwright and Chromium are needed for browser checks.

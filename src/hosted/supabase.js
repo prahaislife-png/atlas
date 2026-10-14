@@ -1,23 +1,32 @@
 const fail = (status, message, code) => Object.assign(new Error(message), {status, code});
 export const uuid = value => typeof value === 'string' && /^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(value);
 
-export function supabaseConfig(env = process.env) {
+export function supabaseConfig(env = process.env, {requireAppOrigin = true} = {}) {
   let url;
   try { url = new URL(env.SUPABASE_URL); } catch { throw fail(503, 'Configure SUPABASE_URL securely before starting hosted ATLAS.'); }
   if (url.protocol !== 'https:' || !/^[a-z0-9-]+\.supabase\.co$/.test(url.hostname) || url.username || url.password || url.pathname !== '/' || url.search || url.hash || url.port) throw fail(503, 'SUPABASE_URL must be an HTTPS Supabase project origin.');
-  if (!env.SUPABASE_ANON_KEY || !env.SUPABASE_SERVICE_ROLE_KEY) throw fail(503, 'Configure SUPABASE_ANON_KEY and the server-only SUPABASE_SERVICE_ROLE_KEY in secure environment settings.');
+  const anonKey = env.SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_ANON_KEY;
+  const serviceKey = env.SUPABASE_SECRET_KEY || env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!anonKey || !serviceKey) throw fail(503, 'Configure SUPABASE_ANON_KEY (publishable key) and the server-only SUPABASE_SERVICE_ROLE_KEY (secret key) in secure environment settings.');
+  // Explicit mode also works when cloud secrets are injected as opaque proxy
+  // placeholders. Never infer key type by decoding or printing credential values.
+  const keyMode = env.SUPABASE_KEY_MODE || (env.SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_SECRET_KEY ? 'modern' : 'legacy');
+  if (!['modern','legacy'].includes(keyMode)) throw fail(503, 'SUPABASE_KEY_MODE must be modern or legacy.');
+  const connection = {url: url.origin, anonKey, serviceKey, keyMode};
+  if (!requireAppOrigin) return connection;
   let app;
   try { app = new URL(env.ATLAS_APP_URL); } catch { throw fail(503, 'Configure ATLAS_APP_URL to the exact HTTPS application origin.'); }
   if (app.protocol !== 'https:' || app.username || app.password || app.pathname !== '/' || app.search || app.hash) throw fail(503, 'ATLAS_APP_URL must be the exact HTTPS application origin.');
-  return {url: url.origin, appOrigin: app.origin, appHost: app.host, anonKey: env.SUPABASE_ANON_KEY, serviceKey: env.SUPABASE_SERVICE_ROLE_KEY};
+  return {...connection, appOrigin: app.origin, appHost: app.host};
 }
 
 export function createSupabase(config, fetchImpl = fetch) {
   async function call(route, {token, service = false, method = 'GET', body, headers = {}} = {}) {
     const key = service ? config.serviceKey : config.anonKey;
+    const bearer = token || (config.keyMode === 'modern' ? undefined : key);
     let response;
     try {
-      response = await fetchImpl(config.url + route, {method, headers: {apikey: key, Authorization: `Bearer ${token || key}`, 'Content-Type': 'application/json', ...headers},
+      response = await fetchImpl(config.url + route, {method, headers: {apikey: key, ...(bearer ? {Authorization: `Bearer ${bearer}`} : {}), 'Content-Type': 'application/json', ...headers},
         ...(body === undefined ? {} : {body: JSON.stringify(body)}), signal: AbortSignal.timeout(8000), redirect: 'error'});
     } catch { throw fail(503, 'The authentication or data service is unavailable. Please retry later.'); }
     let result;
